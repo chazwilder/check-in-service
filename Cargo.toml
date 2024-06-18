@@ -1,0 +1,27 @@
+[package]
+name = "check_in_service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tiberius = { version = "0.12.2", features = ["chrono"] }
+tokio = {version = "1.38.0", features = ["full"]}
+serde = {version = "1.0.203", features = ["derive"]}
+serde_json = {version = "1.0.117"}
+chrono = {version = "0.4.38"}
+dotenvy = {version = "0.15.7"}
+tokio-util = {version = "0.7.11", features = ["compat"] }
+anyhow = "1.0.86"
+mongodb = {version = "2.8.2"}
+futures = {version = "0.3.30"}
+rayon = "1.10.0"
+winauth = "0.0.5"
+derive_more = "0.99.18"
+
+[[bin]]
+name = "Check-In-Service"
+path = "src/bin/main.rs"
+
+[lib]
+name = "check_in"
+path = "src/lib/mod.rs"
