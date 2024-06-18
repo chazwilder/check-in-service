@@ -4,7 +4,6 @@ use std::env;
 use futures::stream::TryStreamExt;
 use mongodb::{Client, options::ClientOptions, options::FindOptions};
 use mongodb::bson::{doc, Document};
-use crate::models::InventoryConfig;
 
 
 
