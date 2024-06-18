@@ -18,8 +18,9 @@ rayon = "1.10.0"
 winauth = "0.0.5"
 derive_more = "0.99.18"
 
+
 [[bin]]
-name = "Check-In-Service"
+name = "check_in_service"
 path = "src/bin/main.rs"
 
 [lib]
