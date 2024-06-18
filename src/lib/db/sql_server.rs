@@ -1,5 +1,5 @@
 use futures::TryStreamExt;
-use tiberius::{AuthMethod, Client, Config, QueryItem, Row};
+use tiberius::{AuthMethod, Client, Config, QueryItem};
 use tokio::net::TcpStream;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 use dotenvy::dotenv;
