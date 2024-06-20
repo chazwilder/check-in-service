@@ -1,11 +1,18 @@
-use chrono::{NaiveDateTime};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use derive_more::Constructor;
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+use sqlx_oldapi::Row;
+use sqlx_oldapi::types::chrono::NaiveDateTime;
+use futures::TryStreamExt;
+use sqlx_oldapi::Connection;
+use serde::{Deserialize, Serialize, Deserializer, Serializer};
 
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(sqlx_oldapi::FromRow, Debug, Clone, Deserialize, Serialize, Constructor)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[allow(non_snake_case)]
 pub struct NewOrder {
-    pub TC_SHIPMENT_ID: i32,
+    pub TC_SHIPMENT_ID: i64,
     pub D_ADDRESS: String,
     pub D_CITY: String,
     pub D_STATE_PROV: String,
@@ -13,106 +20,19 @@ pub struct NewOrder {
     pub NUM_STOPS: i32,
     #[serde(deserialize_with = "deserialize_dttm", serialize_with = "serialize_dttm")]
     pub PICKUP_START_DTTM: NaiveDateTime,
-    pub PRELOAD: String,
-    pub CUSTOMER_NAME: String,
-    pub TRAILER_NUMBER: String,
+    pub PRELOAD: Option<String>,
+    pub CUSTOMER_NAME: Option<String>,
+    pub TRAILER_NUMBER: Option<String>,
     #[serde(deserialize_with = "deserialize_dttm", serialize_with = "serialize_dttm")]
     pub CREATED_SOURCE_DTTM: NaiveDateTime,
     #[serde(deserialize_with = "deserialize_dttm", serialize_with = "serialize_dttm")]
     pub ACTUAL_CHECKIN_DTTM: NaiveDateTime,
     #[serde(deserialize_with = "deserialize_dttm", serialize_with = "serialize_dttm")]
     pub YARD_ACTIVITY_DTTM: NaiveDateTime,
-    pub APPOINTMENT_ID: i32,
-    pub TRAILER_REF_ID: i32,
+    pub APPOINTMENT_ID: i64,
+    pub TRAILER_REF_ID: i64,
     pub ACTIVITY_TYPE: i32,
     pub ACTIVITY_USER: String,
-}
-impl NewOrder {
-    pub fn from_row(row: &tiberius::Row) -> Result<Self, tiberius::error::Error> {
-        Ok(Self {
-            TC_SHIPMENT_ID: row.try_get::<&str, _>("TC_SHIPMENT_ID")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            D_ADDRESS: row.try_get::<&str, _>("D_ADDRESS")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            D_CITY: row.try_get::<&str, _>("D_CITY")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            D_STATE_PROV: row.try_get::<&str, _>("D_STATE_PROV")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            D_POSTAL_CODE: row.try_get::<&str, _>("D_POSTAL_CODE")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            NUM_STOPS: row.try_get::<&str, _>("NUM_STOPS")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            PICKUP_START_DTTM: row.try_get::<NaiveDateTime, _>("PICKUP_START_DTTM")
-                .ok()
-                .flatten()
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0)),
-            PRELOAD: row.try_get::<&str, _>("PRELOAD")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            CUSTOMER_NAME: row.try_get::<&str, _>("CUSTOMER_NAME")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            TRAILER_NUMBER: row.try_get::<&str, _>("TRAILER_NUMBER")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            CREATED_SOURCE_DTTM: row.try_get::<NaiveDateTime, _>("CREATED_SOURCE_DTTM")
-                .ok()
-                .flatten()
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0)),
-            ACTUAL_CHECKIN_DTTM: row.try_get::<NaiveDateTime, _>("ACTUAL_CHECKIN_DTTM")
-                .ok()
-                .flatten()
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0)),
-            YARD_ACTIVITY_DTTM: row.try_get::<NaiveDateTime, _>("YARD_ACTIVITY_DTTM")
-                .ok()
-                .flatten()
-                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0)),
-            APPOINTMENT_ID: row.try_get::<&str, _>("APPOINTMENT_ID")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            TRAILER_REF_ID: row.try_get::<&str, _>("TRAILER_REF_ID")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            ACTIVITY_TYPE: row.try_get::<&str, _>("ACTIVITY_TYPE")
-                .ok()
-                .flatten()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0),
-            ACTIVITY_USER: row.try_get::<&str, _>("ACTIVITY_USER")
-                .ok()
-                .flatten()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-        })
-    }
 }
 
 
@@ -132,4 +52,202 @@ where
 {
     let s = format!("{}", date.format(FORMAT));
     serializer.serialize_str(&s)
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct MongoShipments {
+    pub CREATED_DTTM: Option<DateTime<Utc>>,
+    pub CHECKIN_DTTM: Option<DateTime<Utc>>,
+    pub TRAILER_INSPECTED_DTTM: Option<DateTime<Utc>>,
+    pub FIRST_DROP_DTTM: Option<DateTime<Utc>>,
+    pub LOADED_DTTM: Option<DateTime<Utc>>,
+    pub CHECKOUT_DTTM: Option<DateTime<Utc>>,
+    pub MA_SHIPMENT_ID: Option<i64>,
+    pub SDM_SHIPMENT_ID: Option<i64>,
+    pub TRIP_NUMBER: i64,
+    pub DESTINATION: Option<String>,
+    pub CUSTOMER: Option<String>,
+    pub CARRIER: Option<String>,
+    pub APPOINTMENT_DTTM: Option<DateTime<Utc>>,
+    pub APPOINTMENT_ADHERENCE: Option<String>,
+    pub GRANT_DETENTION: Option<bool>,
+    pub SKU: Option<Vec<String>>,
+    pub SKU_LOCATION_COUNT: Option<i32>,
+    pub PALLET_COUNT: Option<i32>,
+    pub PLANT_ASSETS: Option<PlantAssets>,
+    pub LOCATIONS: Option<Vec<Location>>,
+    pub AGING_LPNS: Option<Vec<AgingLPN>>,
+    pub MULTISTOP_COUNT: Option<i32>,
+    pub LOAD_TYPE: Option<String>,
+    pub LOAD_TIME: Option<i32>,
+    pub PROCESS_TIME: Option<i32>,
+    pub GATE_TO_DOCK: Option<i32>,
+    pub REDOCKED: Option<bool>,
+    pub DOCK_TO_INSPECTED: Option<i32>,
+    pub START_TO_FIRST_DROP: Option<i32>,
+    pub PRODUCTION_BLOCKS: Option<i32>,
+    pub LOAD_PATTERN: Option<Vec<LoadPattern>>,
+    pub TIME_MACHINE: Option<TimeMachine>,
+    pub APPLICATION_SETTING: Option<HashMap<String, serde_json::Value>>,
+    pub CROSSDOCKING_ENABLED: Option<bool>,
+    pub LOADED_LPNS: Option<Vec<LoadedLPN>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct PlantAssets {
+    DOCKS_AVAILABLE: Option<i32>,
+    DOCKS_ALLOCATED: Option<i32>,
+    LIVE_LOAD_COUNT: Option<i32>,
+    PRELOAD_COUNT: Option<i32>,
+    LGVS_IN_THE_SYSTEM: Option<i32>,
+    LGVS_REMOVED: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct Location {
+    LOCATION_ID: Option<i32>,
+    LOCATION_NAME: Option<String>,
+    UNITS_IN_LOCATION: Option<i32>,
+    UNITS_ALLOCATABLE: Option<i32>,
+    LOCATION_BLOCKED: Option<bool>,
+    LOCATION_DISABLE: Option<bool>,
+    POSITIONS_BLOCKED: Option<i32>,
+    POSITION_DISABLED: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct AgingLPN {
+    STOCKUNIT_ID: Option<i32>,
+    SKU: Option<String>,
+    LPN: Option<String>,
+    ENTER_DTTM: Option<DateTime<Utc>>,
+    EXPIRATION_DTTM: Option<DateTime<Utc>>,
+    LOCATION_NAME: Option<String>,
+    LOCATION_ID: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct LoadPattern {
+    key: Option<i32>,
+    value: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct TimeMachine {
+    TRANSPORT_ORDERS: Option<Vec<TransportOrder>>,
+    MISSIONS: Option<Vec<Mission>>,
+    LOADING_STATUS: Option<Vec<LoadingStatus>>,
+    LGV_METRICS: Option<LGVMetrics>,
+    LPN_ACTIVITY: Option<Vec<LPNActivity>>,
+    STAFFING: Option<Staffing>,
+    LGV_MANAGER_MISSIONS: Option<HashMap<String, serde_json::Value>>, // Assuming it's a map of some kind
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct TransportOrder {
+    LOG_DTTM: Option<DateTime<Utc>>,
+    TRANSPORT_ORDER_ID: Option<i32>,
+    TRANSPORT_ORDER_STATUS: Option<String>,
+    ALLOCATED_LPN: Option<String>,
+    ALLOCATED_LGV: Option<String>,
+    START_DTTM: Option<DateTime<Utc>>,
+    RUNNING_DTTM: Option<DateTime<Utc>>,
+    COMPLETED_DTTM: Option<DateTime<Utc>>,
+    HANDLING_ORDER: Option<String>,
+    FROM_LOCATION: Option<String>,
+    TO_LOCATION: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct Mission {
+    LOG_DTTM: Option<DateTime<Utc>>,
+    MISSION_ID: Option<i32>,
+    MISSION_STATUS: Option<String>,
+    HANDLING_ORDER: Option<String>,
+    MISSION_REQUEST_DTTM: Option<DateTime<Utc>>,
+    MISSION_RELEASED_DTTM: Option<DateTime<Utc>>,
+    MISSION_ALLOCATION_DTTM: Option<DateTime<Utc>>,
+    MISSION_PU_DTTM: Option<DateTime<Utc>>,
+    MISSION_DROP_DTTM: Option<DateTime<Utc>>,
+    MISSION_END_DTTM: Option<DateTime<Utc>>,
+    DROP_POSITION: Option<i32>,
+    MISSION_TIME: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct LoadingStatus {
+    LOG_DTTM: Option<DateTime<Utc>>,
+    STATUS: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct LGVMetrics {
+    GLOBAL_LGVS: Option<GlobalLGVS>,
+    ACTIVATED_LGV: Option<Vec<ActivatedLGV>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct GlobalLGVS {
+    LOG_DTTM: Option<DateTime<Utc>>,
+    LGVS_ACTIVE: Option<i32>,
+    LGVS_IDLE: Option<i32>,
+    LGVS_IN_ALARM: Option<i32>,
+    ALARMED_LGV_COORD: Option<HashMap<i32, Coordinates>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct ActivatedLGV {
+    LOG_DTTM: Option<DateTime<Utc>>,
+    LGV: Option<i32>,
+    LOADED: Option<bool>,
+    TRAFFIC_BLOCKED: Option<bool>,
+    IN_ALARM: Option<bool>,
+    X_COORD: Option<i32>,
+    Y_COORD: Option<i32>,
+    ALARM_COUNT: Option<i32>,
+    MISSION_ID: Option<i32>,
+    TRANSPORT_ORDER_ID: Option<i32>,
+    WAITING_CMD: Option<i32>,
+    AUTOMATIC: Option<bool>,
+    IN_PATH: Option<bool>,
+    VALID_POSITION: Option<bool>,
+    MOVING_FW: Option<bool>,
+    MOVING_BW: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct Coordinates {
+    x: Option<i32>,
+    y: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct LPNActivity {
+    STOCKUNIT_ID: Option<i32>,
+    LPN: Option<String>,
+    PALLETS_IN_FRONT: Option<i32>,
+    POSITION_DISABLED: Option<bool>,
+    POSITIONS_BLOCKED: Option<bool>,
+    LOCATION_NAME: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct Staffing {
+    SPRING_LOADS: Option<i32>,
+    RESIN_LOADS: Option<i32>,
+    HEADCOUNT: Option<i32>,
+    BREAKS: Option<HashMap<String, DateTime<Utc>>>,
+    TEAM_MEMBERS: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+pub struct LoadedLPN {
+    STOCKUNIT_ID: Option<i32>,
+    SKU: Option<String>,
+    LPN: Option<String>,
+    LOT_NUMBER: Option<String>,
+    QUANTITY: Option<i32>,
 }

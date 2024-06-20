@@ -8,7 +8,8 @@ tiberius = { version = "0.12.2", features = ["chrono"] }
 tokio = {version = "1.38.0", features = ["full"]}
 serde = {version = "1.0.203", features = ["derive"]}
 serde_json = {version = "1.0.117"}
-chrono = {version = "0.4.38"}
+serde_with = "3.8.1"
+chrono = {version = "0.4.38", features = ["serde"]}
 dotenvy = {version = "0.15.7"}
 tokio-util = {version = "0.7.11", features = ["compat"] }
 anyhow = "1.0.86"
@@ -17,6 +18,7 @@ futures = {version = "0.3.30"}
 rayon = "1.10.0"
 winauth = "0.0.5"
 derive_more = "0.99.18"
+sqlx-oldapi = {version = "0.6.22", features = ["runtime-tokio-native-tls", "mssql", "decimal", "chrono", "sqlx-macros"]}
 
 
 [[bin]]
@@ -26,3 +28,8 @@ path = "src/bin/main.rs"
 [lib]
 name = "check_in"
 path = "src/lib/mod.rs"
+
+opt-level = 3  # Maximum optimization level
+debug = true  # No debug symbols. Set to true if you want debug info.
+lto = true     # Enables Link Time Optimization for better performance
+codegen-units = 1  # Reduces parallelism to increase optimizations
