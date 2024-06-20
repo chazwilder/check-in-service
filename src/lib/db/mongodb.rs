@@ -1,11 +1,11 @@
-use tokio;
 use dotenvy::dotenv;
 use std::env;
 use futures::stream::TryStreamExt;
-use chrono::{DateTime, Utc};
+use chrono::{Utc};
 use mongodb::{Client, options::ClientOptions, options::FindOptions};
 use mongodb::bson::{doc, Document, to_bson};
 use crate::interfaces::{NewOrder,MongoShipments};
+use log::{info, error};
 
 
 
@@ -74,7 +74,14 @@ pub async fn add_order(shipment: NewOrder)-> Result<(), anyhow::Error> {
         LOADED_LPNS: None,
     };
     let doc = to_bson(&new_shipment)?.as_document().unwrap().clone();
-    collection.insert_one(doc, None).await?;
-
-    return Ok(());
+    match collection.insert_one(doc, None).await {
+        Ok(_) => {
+            info!("Order added successfully: trip_number={}", shipment.TC_SHIPMENT_ID);
+            Ok(())
+        }
+        Err(err) => {
+            error!("Error adding order: trip_number={}, error={}", shipment.TC_SHIPMENT_ID, err.to_string());
+            Err(err.into())
+        }
+    }
 }

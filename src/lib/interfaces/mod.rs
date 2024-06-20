@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use sqlx_oldapi::Row;
 use sqlx_oldapi::types::chrono::NaiveDateTime;
 use futures::TryStreamExt;
-use sqlx_oldapi::Connection;
 use serde::{Deserialize, Serialize, Deserializer, Serializer};
 
 
@@ -56,8 +55,8 @@ where
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
+#[allow(non_snake_case)]
 pub struct MongoShipments {
     pub CREATED_DTTM: Option<DateTime<Utc>>,
     pub CHECKIN_DTTM: Option<DateTime<Utc>>,
@@ -96,6 +95,7 @@ pub struct MongoShipments {
     pub LOADED_LPNS: Option<Vec<LoadedLPN>>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct PlantAssets {
     DOCKS_AVAILABLE: Option<i32>,
@@ -106,6 +106,7 @@ pub struct PlantAssets {
     LGVS_REMOVED: Option<i32>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct Location {
     LOCATION_ID: Option<i32>,
@@ -118,6 +119,7 @@ pub struct Location {
     POSITION_DISABLED: Option<i32>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct AgingLPN {
     STOCKUNIT_ID: Option<i32>,
@@ -129,12 +131,14 @@ pub struct AgingLPN {
     LOCATION_ID: Option<i32>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct LoadPattern {
     key: Option<i32>,
     value: Option<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct TimeMachine {
     TRANSPORT_ORDERS: Option<Vec<TransportOrder>>,
@@ -146,6 +150,7 @@ pub struct TimeMachine {
     LGV_MANAGER_MISSIONS: Option<HashMap<String, serde_json::Value>>, // Assuming it's a map of some kind
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct TransportOrder {
     LOG_DTTM: Option<DateTime<Utc>>,
@@ -161,6 +166,7 @@ pub struct TransportOrder {
     TO_LOCATION: Option<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct Mission {
     LOG_DTTM: Option<DateTime<Utc>>,
@@ -177,18 +183,21 @@ pub struct Mission {
     MISSION_TIME: Option<i32>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct LoadingStatus {
     LOG_DTTM: Option<DateTime<Utc>>,
     STATUS: Option<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct LGVMetrics {
     GLOBAL_LGVS: Option<GlobalLGVS>,
     ACTIVATED_LGV: Option<Vec<ActivatedLGV>>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct GlobalLGVS {
     LOG_DTTM: Option<DateTime<Utc>>,
@@ -198,6 +207,7 @@ pub struct GlobalLGVS {
     ALARMED_LGV_COORD: Option<HashMap<i32, Coordinates>>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct ActivatedLGV {
     LOG_DTTM: Option<DateTime<Utc>>,
@@ -218,12 +228,14 @@ pub struct ActivatedLGV {
     MOVING_BW: Option<bool>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct Coordinates {
     x: Option<i32>,
     y: Option<i32>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct LPNActivity {
     STOCKUNIT_ID: Option<i32>,
@@ -234,6 +246,7 @@ pub struct LPNActivity {
     LOCATION_NAME: Option<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct Staffing {
     SPRING_LOADS: Option<i32>,
@@ -243,6 +256,7 @@ pub struct Staffing {
     TEAM_MEMBERS: Option<Vec<String>>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone, Constructor)]
 pub struct LoadedLPN {
     STOCKUNIT_ID: Option<i32>,

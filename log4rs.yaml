@@ -1,0 +1,22 @@
+refresh_rate: 60 seconds
+
+appenders:
+  stdout:
+    kind: console
+
+  requests:
+    kind: file
+    path: "logs/requests.log"
+    encoder:
+      pattern: "{d} - {m}{n}"
+    roller:
+      kind: fixed_window
+      base: 1
+      count: 10
+      pattern: "logs/requests.{}.log"
+
+root:
+  level: info
+  appenders:
+    - stdout
+    - requests
