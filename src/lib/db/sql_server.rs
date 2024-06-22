@@ -1,5 +1,4 @@
 use sqlx_oldapi::mssql::MssqlPoolOptions;
-use sqlx_oldapi::Connection;
 use dotenvy::dotenv;
 use std::env;
 use crate::interfaces::NewOrder;

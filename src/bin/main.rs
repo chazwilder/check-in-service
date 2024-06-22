@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
         HttpServer::new(|| {
             App::new().configure(configure_heartbeat)
         })
-        .bind("127.0.0.1:3031")
+        .bind("127.0.0.1:3032")
         .expect("Failed to bind server")
         .run()
         .await

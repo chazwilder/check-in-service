@@ -1,9 +1,7 @@
 use derive_more::Constructor;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
-use sqlx_oldapi::Row;
 use sqlx_oldapi::types::chrono::NaiveDateTime;
-use futures::TryStreamExt;
 use serde::{Deserialize, Serialize, Deserializer, Serializer};
 
 
@@ -12,6 +10,7 @@ use serde::{Deserialize, Serialize, Deserializer, Serializer};
 #[allow(non_snake_case)]
 pub struct NewOrder {
     pub TC_SHIPMENT_ID: i64,
+    pub MA_SHIPMENT_ID: i64,
     pub D_ADDRESS: String,
     pub D_CITY: String,
     pub D_STATE_PROV: String,
@@ -28,12 +27,16 @@ pub struct NewOrder {
     pub ACTUAL_CHECKIN_DTTM: NaiveDateTime,
     #[serde(deserialize_with = "deserialize_dttm", serialize_with = "serialize_dttm")]
     pub YARD_ACTIVITY_DTTM: NaiveDateTime,
+    pub APPOINTMENT_TIME_VARIANCE: i64,
+    pub APPOINTMENT_ADHERENCE: String,
     pub APPOINTMENT_ID: i64,
     pub TRAILER_REF_ID: i64,
     pub ACTIVITY_TYPE: i32,
     pub ACTIVITY_USER: String,
+    pub APPOINTMENT_STATUS: String,
+    pub DOCK_DOOR: String,
+    pub CARRIER: String,
 }
-
 
 
 const FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -68,10 +71,15 @@ pub struct MongoShipments {
     pub SDM_SHIPMENT_ID: Option<i64>,
     pub TRIP_NUMBER: i64,
     pub DESTINATION: Option<String>,
+    pub DOCK_DOOR: Option<String>,
+    pub TRAILER_NUMBER: Option<String>,
+    pub CHECK_IN_USER: Option<String>,
     pub CUSTOMER: Option<String>,
     pub CARRIER: Option<String>,
     pub APPOINTMENT_DTTM: Option<DateTime<Utc>>,
     pub APPOINTMENT_ADHERENCE: Option<String>,
+    pub APPOINTMENT_TIME_VARIANCE: Option<i64>,
+    pub APPOINTMENT_STATUS: Option<String>,
     pub GRANT_DETENTION: Option<bool>,
     pub SKU: Option<Vec<String>>,
     pub SKU_LOCATION_COUNT: Option<i32>,
@@ -93,6 +101,7 @@ pub struct MongoShipments {
     pub APPLICATION_SETTING: Option<HashMap<String, serde_json::Value>>,
     pub CROSSDOCKING_ENABLED: Option<bool>,
     pub LOADED_LPNS: Option<Vec<LoadedLPN>>,
+    pub MA_APPOINTMENT_ID: Option<i64>,
 }
 
 #[allow(non_snake_case)]

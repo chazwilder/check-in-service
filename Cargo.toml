@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.38.0", features = ["rt-multi-thread", "macros", "time", "signal"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = { version = "1.0.117" }
 chrono = { version = "0.4.38", features = ["serde"] }
@@ -28,7 +28,27 @@ path = "src/lib/mod.rs"
 
 
 [profile.release]
-opt-level = 3
+opt-level = 1
+debug = false
+split-debuginfo = '...'  # Platform-specific.
+strip = "none"
+debug-assertions = false
+overflow-checks = false
+lto = false
+panic = 'unwind'
+incremental = false
+codegen-units = 32
+rpath = false
+
+[profile.dev]
+opt-level = 0
 debug = true
-lto = true
-codegen-units = 1
+split-debuginfo = '...'  # Platform-specific.
+strip = "none"
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
